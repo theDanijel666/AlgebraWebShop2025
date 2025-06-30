@@ -1,0 +1,106 @@
+﻿@model List<Product>
+
+@{
+    ViewBag.Title = "Products";
+}
+
+<h3>Product list</h3>
+
+<div class="row mb-5">
+    <div class="col-2">
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-bs-toggle="dropdown">
+                Filter by category
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                @foreach(var item in ViewBag.Categories)
+                {
+                    <a class="dropdown-item" asp-action="Product" 
+                        asp-route-categoryId="@item.Id">@item.Title</a>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-2">
+        <a asp-action="Product" class="btn btn-warning"> Reset filters </a>
+    </div>
+    <div class="col-6"></div>
+    <div class="col-2"> 
+        @* <select name="sortby" class="form-select">
+            <option> Sort </option>
+            <option> Price High to Low </option>
+            <option> Price Low to High </option>
+            <option> Name A to Z </option>
+            <option> Name Z to A </option>
+        </select> *@
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButtonSort"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-bs-toggle="dropdown">
+                Sort by
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButtonSort">
+                    <a class="dropdown-item" asp-action="Product"
+                   asp-route-sort="Price High to Low">Price High to Low</a>
+                <a class="dropdown-item" asp-action="Product"
+                   asp-route-sort="Price Low to High">Price Low to High</a>
+                <a class="dropdown-item" asp-action="Product"
+                   asp-route-sort="Name A to Z">Name A to Z</a>
+                <a class="dropdown-item" asp-action="Product"
+                   asp-route-sort="Name Z to A">Name Z to A</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    @foreach(var item in Model)
+    {
+        <div class="col-sm-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">@item.Title</h5>
+                    @{
+                        string imgurl = "/Media/No_image.png";
+                        if (item.Images.Count > 0)
+                        {
+                            var img = item.Images.Where(i => i.IsMain).FirstOrDefault();
+                            if (img != null) imgurl = img.URL;
+                            else
+                            {
+                                imgurl = item.Images.First().URL;
+                            }
+                        }
+                    }
+                    <img class="card-img" src="@imgurl" />
+                    <p class="card-text">@item.Description</p>
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                            <th>Price</th>
+                            <th></th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>@item.Price €</td>
+                                <td>
+                                    @if(item.Quantity>0){
+                                        <form method="post" asp-controller="Cart" asp-action="AddToCart">
+                                        <input type="hidden" name="productId" value="@item.Id" />
+                                        <input type="hidden" name="quantity" value="1" />
+                                        <input type="submit" class="btn btn-success btn-sm"
+                                         value="Add to cart"/>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <label class="btn btn-danger">Out of stock!</label>
+                                    }
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>

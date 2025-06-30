@@ -1,0 +1,31 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using AlgebraWebShop2025.Data
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="">My Orders</a>
+    </li>
+}
+
+
+@if (SignInManager.IsSignedIn(User) && 
+    await UserManager.IsInRoleAsync(UserManager.GetUserAsync(User).Result, "admin"))
+{
+    <li class="nav-item">
+        <div class="dropdown">
+            <a class="nav-link text-dark dropdown-toggle" data-bs-toggle="dropdown" href="#">
+                Admin
+            </a>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" asp-area="Admin" asp-controller="Category" asp-action="Index">Categories</a>
+                <a class="dropdown-item" asp-area="Admin" asp-controller="Product" asp-action="Index">Products</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" asp-area="Admin" asp-controller="Order" asp-action="Index">Orders</a>
+            </div>
+        </div>
+    </li>
+}

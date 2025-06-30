@@ -1,0 +1,36 @@
+﻿@model IEnumerable<AlgebraWebShop2025.Models.ProductCategory>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create" asp-route-productId="@ViewBag.ProductId">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Product name</th>
+            <th>Category name</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>@item.ProductTitle</td>
+            <td>@item.CategoryTitle</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<div>
+    <a asp-controller="Product" asp-action="Index" >Back to Products</a>
+</div>

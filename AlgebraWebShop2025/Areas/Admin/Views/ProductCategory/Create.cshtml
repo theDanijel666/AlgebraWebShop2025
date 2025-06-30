@@ -1,0 +1,30 @@
+﻿@model AlgebraWebShop2025.Models.ProductCategory
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>ProductCategory</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <input type="hidden" asp-for="ProductId" value="@ViewBag.ProductId" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label class="control-label">Category</label>
+                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.Categories"></select>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index" asp-route-productId="@ViewBag.ProductId">Back to List</a>
+</div>
+

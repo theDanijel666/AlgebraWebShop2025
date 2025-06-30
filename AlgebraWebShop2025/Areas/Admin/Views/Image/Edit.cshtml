@@ -1,0 +1,50 @@
+﻿@model AlgebraWebShop2025.Models.Image
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>Image</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="IsMain" /> @Html.DisplayNameFor(model => model.IsMain)
+                </label>
+            </div>
+            <div class="form-group">
+                <label asp-for="Title" class="control-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <textarea asp-for="Description" class="form-control" > </textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="URL" class="control-label"> Chose an image to replace the current one.. </label>
+                <input type="hidden" asp-for="URL" class="form-control" />
+                <input type="file" name="file" class="form-control" />
+                <img src="@Model.URL" width="200" alt="@Model.Title" />
+                <span asp-validation-for="URL" class="text-danger"></span>
+            </div>
+            <input type="hidden" asp-for="ProductId" />
+            <br />
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index" asp-route-productId="@Model.ProductId">Back to List</a>
+</div>
+
