@@ -38,7 +38,7 @@ else
                         <a class="btn btn-sm btn-danger" asp-action="RemoveFromCart"
                                 asp-route-productId="@item.Product.Id">Remove</a>
                     </td>
-                    <td>@item.Product.Title</td>
+                    <td><a asp-controller="Home" asp-action="SingleProduct" asp-route-id="@item.Product.Id" style="text-decoration:none"> @item.Product.Title </a></td>
                     <td>
                         @{
                             string imgurl = "/Media/No_image.png";
@@ -52,7 +52,7 @@ else
                                 }
                             }
                         }
-                        <img src="@imgurl" width="80" />
+                        <a asp-controller="Home" asp-action="SingleProduct" asp-route-id="@item.Product.Id"><img src="@imgurl" width="80" /></a>
                     </td>
                     <td>@item.Product.Price.ToString("0.00") €</td>
                     <td>

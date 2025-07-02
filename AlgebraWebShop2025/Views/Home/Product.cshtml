@@ -59,7 +59,7 @@
         <div class="col-sm-4">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">@item.Title</h5>
+                    <a asp-action="SingleProduct" asp-route-id="@item.Id" style="text-decoration:none"><h5 class="card-title">@item.Title</h5></a>
                     @{
                         string imgurl = "/Media/No_image.png";
                         if (item.Images.Count > 0)
@@ -72,7 +72,7 @@
                             }
                         }
                     }
-                    <img class="card-img" src="@imgurl" />
+                    <a asp-action="SingleProduct" asp-route-id="@item.Id"><img class="card-img" src="@imgurl" /></a>
                     <p class="card-text">@item.Description</p>
                     <table class="table table-condensed table-hover">
                         <thead>

@@ -36,9 +36,13 @@ namespace AlgebraWebShop2025.Controllers
         [HttpPost]
         public IActionResult AddToCart(int productId, decimal quantity)
         {
+            if (quantity <= 0)
+            {
+                return RedirectToAction(nameof(Index), new { message = "Quantity must be greater than zero!" });
+            }
             List<CartItem> session_items = HttpContext.Session.
                 GetObjectFromJson<List<CartItem>>(SessionKeyName) ?? new List<CartItem>();
-
+            string msg=String.Empty;
             if (session_items.Count == 0)
             {
                 CartItem cartItem = new CartItem()
@@ -46,7 +50,16 @@ namespace AlgebraWebShop2025.Controllers
                     Product = _context.Product.Find(productId),
                     Quantity = quantity
                 };
+
+                decimal available_quantity = _context.Product.Find(productId).Quantity;
+                if (available_quantity < cartItem.Quantity)
+                {
+                    cartItem.Quantity = available_quantity;
+                    msg = "With available quantity, ";
+                }
+
                 session_items.Add(cartItem);
+                msg += cartItem.Product.Title + " added to cart";
 
                 HttpContext.Session.SetObjectAsJson(SessionKeyName, session_items);
             }
@@ -60,17 +73,33 @@ namespace AlgebraWebShop2025.Controllers
                         Product = _context.Product.Find(productId),
                         Quantity = quantity
                     };
+
+                    decimal available_quantity = _context.Product.Find(productId).Quantity;
+                    if (available_quantity < cartItem.Quantity)
+                    {
+                        cartItem.Quantity = available_quantity;
+                        msg = "With available quantity, ";
+                    }
+
                     session_items.Add(cartItem);
+                    msg += cartItem.Product.Title + " added to cart";
                 }
                 else
                 {
                     session_items[product_index].Quantity += quantity;
+                    msg = "Quantity updated. ";
+                    decimal available_quantity = _context.Product.Find(session_items[product_index].Product.Id).Quantity;
+                    if (available_quantity < session_items[product_index].Quantity) 
+                    {
+                        session_items[product_index].Quantity=available_quantity;
+                        msg += "Quantity set to available quantity!";
+                    }
                 }
 
                 HttpContext.Session.SetObjectAsJson(SessionKeyName, session_items);
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { message = msg });
         }
 
         public IActionResult RemoveFromCart(int productId)

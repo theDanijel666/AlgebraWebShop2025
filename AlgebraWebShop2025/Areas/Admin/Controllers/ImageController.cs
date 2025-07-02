@@ -215,9 +215,11 @@ namespace AlgebraWebShop2025.Areas.Admin.Controllers
         {
             var image = await _context.Image.FindAsync(id);
             string file="";
+            int productid=0;
             if (image != null)
             {
                 file = image.URL;
+                productid = image.ProductId;
                 _context.Image.Remove(image);
             }
 
@@ -228,7 +230,7 @@ namespace AlgebraWebShop2025.Areas.Admin.Controllers
             file=System.IO.Path.Combine(Directory.GetCurrentDirectory(),"wwwroot" ,file);
             if(System.IO.File.Exists(file)) System.IO.File.Delete(file); 
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { productId = productid });
         }
 
         private bool ImageExists(int id)
