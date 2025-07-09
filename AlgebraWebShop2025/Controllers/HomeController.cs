@@ -8,22 +8,34 @@ using System.Diagnostics;
 using System.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Mvc.Routing;
+using NuGet.Protocol;
+using Microsoft.AspNetCore.Authorization;
+
 namespace AlgebraWebShop2025.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
         public const string SessionKeyName = "_cart";
 
-        public HomeController(ILogger<HomeController> logger,ApplicationDbContext context)
+        public HomeController(ILogger<HomeController> logger,ApplicationDbContext context, 
+            UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
         {
             _logger = logger;
             _context = context;
+            _userManager = userManager;
+            _signInManager = signInManager;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string message)
         {
+            ViewBag.Message=message;
             return View();
         }
 
@@ -111,6 +123,9 @@ namespace AlgebraWebShop2025.Controllers
 
             ViewBag.Errors = errors;
 
+            Order order = HttpContext.Session.GetObjectFromJson<Order>("OrderDetails") ?? new Order();
+            ViewBag.Order = order;
+
             return View(cart);
         }
 
@@ -119,8 +134,9 @@ namespace AlgebraWebShop2025.Controllers
         public IActionResult CreateOrder([Bind("Total," +
             "BillingFirstName,BillingLastName,BillingEmail,BillingPhone,BillingAddress,BillingCity,BillingZIP,BillingCountry," +
             "ShippingFirstName,ShippingLastName,ShippingEmail,ShippingPhone,ShippingAddress,ShippingCity,ShippingZIP,ShippingCountry," +
-            "Message")] Order order,bool ShippingSameAsBilling)
+            "Message")] Order order,string ShippingSameAsBilling)
         {
+            HttpContext.Session.SetObjectAsJson("OrderDetails", order);
             var modelErrors=new List<string>();
 
             string msg = CheckCart();
@@ -136,14 +152,73 @@ namespace AlgebraWebShop2025.Controllers
                 return RedirectToAction(nameof(Order), new { errors = modelErrors });
             }
 
-            //TODO: sync shipping and billing if checked when they are the same!
+            ModelState.Remove("ShippingSameAsBilling");
+            ModelState.Remove("OrderItems");
 
-            //TODO: remove useless validations and bind data
-            
+            if (order.Message.IsNullOrEmpty()) order.Message = "";
+            ModelState.Remove("Message");
 
-            if (ModelState.IsValid)
+            if (_signInManager.IsSignedIn(User))
             {
-                //TODO: if no model errors make order!
+                var userid = _userManager.GetUserId(User);
+                order.UserId = userid;
+                ModelState.Remove("UserId");
+            }
+            else
+            {
+                modelErrors.Add("User : You have to be logged in to make an order!");
+                return RedirectToAction(nameof(Order), new { errors = modelErrors });
+            }
+
+            if (ShippingSameAsBilling=="on")
+            {
+                order.ShippingFirstName = order.BillingFirstName;
+                ModelState.Remove("ShippingFirstName");
+                order.ShippingLastName = order.BillingLastName;
+                ModelState.Remove("ShippingLastName");
+                order.ShippingEmail = order.BillingEmail;
+                ModelState.Remove("ShippingEmail");
+                order.ShippingPhone = order.BillingPhone;
+                ModelState.Remove("ShippingPhone");
+                order.ShippingAddress = order.BillingAddress;
+                ModelState.Remove("ShippingAddress");
+                order.ShippingCity = order.BillingCity;
+                ModelState.Remove("ShippingCity");
+                order.ShippingCountry = order.BillingCountry;
+                ModelState.Remove("ShippingCountry");
+                order.ShippingZIP = order.BillingZIP;
+                ModelState.Remove("ShippingZIP");
+            }
+            
+            if (ModelState.IsValid && modelErrors.Count==0)
+            {
+                _context.Order.Add(order);
+                _context.SaveChanges();
+
+                int order_id = order.Id;
+
+                foreach(var item in cart)
+                {
+                    OrderItem oi = new OrderItem()
+                    {
+                        OrderId = order_id,
+                        ProductId = item.Product.Id,
+                        Quantity = item.Quantity,
+                        Price = item.Product.Price,
+                        Discount = item.Product.Discount
+                    };
+
+                    var prod = _context.Product.Find(oi.ProductId);
+                    prod.Quantity-=oi.Quantity;
+                    _context.Update(prod);
+
+                    _context.OrderItem.Add(oi);
+                    _context.SaveChanges();
+                }
+
+                HttpContext.Session.SetObjectAsJson(SessionKeyName, "");
+                HttpContext.Session.SetObjectAsJson("OrderDetails", "");
+                return RedirectToAction(nameof(Index), new { message = "Thank you for your order :)" });
             }
             else
             {
@@ -191,6 +266,39 @@ namespace AlgebraWebShop2025.Controllers
             }
 
             return "OK";
+        }
+
+        [Authorize]
+        public IActionResult MyOrder()
+        {
+            var userid = _userManager.GetUserId(User);
+            var orders = _context.Order.Where(o=>o.UserId== userid);
+            return View(orders);
+        }
+
+        [Authorize]
+        public IActionResult MyOrderDetails(int id)
+        {
+            var order=_context.Order.Where(o=>o.Id==id).FirstOrDefault();
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            var userid = _userManager.GetUserId(User);
+
+            if (order.UserId != userid)
+            {
+                return RedirectToAction(nameof(Index), new { message = "Not allowed to view orders that you did not make!" });
+            }
+
+            order.OrderItems = _context.OrderItem.Where(o => o.OrderId == order.Id).ToList();
+            foreach (var item in order.OrderItems)
+            {
+                item.ProductTitle = _context.Product.Find(item.ProductId).Title;
+            }
+
+            return View(order);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

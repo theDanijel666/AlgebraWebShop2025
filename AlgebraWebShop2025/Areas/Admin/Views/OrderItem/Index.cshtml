@@ -1,0 +1,70 @@
+﻿@model IEnumerable<AlgebraWebShop2025.Models.OrderItem>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create" asp-route-orderid="@ViewBag.OrderId">Add order item</a>
+</p>
+<p>
+    <a asp-action="Index" asp-controller="Order">Back to Order list</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Item
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Quantity)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Price)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Discount)
+            </th>
+            <th>
+                Item Total
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.ProductTitle)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Quantity)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Price) €
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Discount) %
+            </td>
+            <td>
+                @((item.Quantity*item.Price*(1-item.Discount/100)).ToString("0.00")) €
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+<tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td><b>Total price: </b></td>
+    <td>@ViewBag.Total.ToString("0.00") €</td>
+    <td></td>
+</tr>
+    </tbody>
+</table>
